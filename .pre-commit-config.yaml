@@ -1,0 +1,75 @@
+repos:
+  - repo: https://github.com/PyCQA/pylint
+    rev: v2.16.3
+    hooks:
+      - id: pylint
+        args:
+          - --rcfile=./cousin-minecraft-server/pyproject.toml
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+        args:
+          - --config=./cousin-minecraft-server/pyproject.toml
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args:
+          - --toml-config=./cousin-minecraft-server/pyproject.toml
+          - --radon-max-cc=8
+        additional_dependencies:
+          - radon
+          - flake8-docstrings
+          - Flake8-pyproject
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+        args:
+          - --markdown-linebreak-ext=md
+      - id: end-of-file-fixer
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+        exclude_types:
+          - csv
+          - svg
+      - id: check-toml
+      - id: check-yaml
+        args:
+          - --unsafe
+      - id: check-symlinks
+      - id: check-added-large-files
+        args:
+          - --maxkb=500
+        exclude: |
+          (?x)(
+            ^path/to/some/big/file.csv|
+            ^path/to/another/big/file.csv
+          )
+      - id: requirements-txt-fixer
+        exclude: ^(.gitattributes|.gitignore|.projen/deps.json|.projen/files.json|.projen/tasks.json|.vscode/example-settings.json|.vscode/extensions.json|bitbucket-pipelines.yml|infrastructure/Makefile|infrastructure/pyproject.toml|Makefile|cousin-minecraft-server/Makefile|cousin-minecraft-server/pyproject.toml|.pre-commit-config.yaml)
+      - id: forbid-new-submodules
+      - id: no-commit-to-branch
+        args:
+          - --branch=trunk
+      - id: detect-private-key
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args:
+          - --settings-path=./cousin-minecraft-server/pyproject.toml
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.0.1
+    hooks:
+      - id: autoflake
+        args:
+          - --in-place
+          - --remove-all-unused-imports
+          - --remove-unused-variable
+          - --ignore-init-module-imports

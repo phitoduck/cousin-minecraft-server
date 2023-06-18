@@ -1,0 +1,82 @@
+AWS_PROFILE := "mlops-club"
+
+cdk COMMAND:
+	AWS_PROFILE="{{AWS_PROFILE}}" \
+		cdk "{{COMMAND}}" --all --app "python app.py"
+
+cdk-deploy-ci:
+	AWS_ACCESS_KEY_ID=$${AWS_ACCESS_KEY_ID__IAC} \
+	AWS_SECRET_ACCESS_KEY=$${AWS_SECRET_ACCESS_KEY__IAC} \
+		cdk deploy --app 'python app.py' --require-approval never --ci
+
+install:
+	pip install --upgrade pip
+	pip install --editable .[all] pre-commit flake8 flake8-docstrings Flake8-pyproject radon pylint mypy black isort
+
+install-ci: install
+	# install npm
+	apt-get update \
+		&& apt-get upgrade -y \
+		&& apt-get -y install curl dirmngr apt-transport-https lsb-release ca-certificates \
+		&& curl -sL https://deb.nodesource.com/setup_18.x | bash - \
+		&& apt-get update -y && apt-get install -y nodejs
+	npm install -g aws-cdk
+
+synth-project:
+	@echo "\033[32;1;1mThe Makefile at \033[33;1;1m$${PWD}/Makefile\033[32;1;1m has no 'synth-project' target."
+	@echo
+	@echo "Did you mean to use the Makefile at the root of your project?"
+
+lint:
+	pre-commit run --all-files
+
+lint-ci:
+	SKIP=no-commit-to-branch pre-commit run --all-files
+
+unit-test:
+	pytest tests/unit_tests/ --cov src/ \
+		--cov-report term-missing \
+		--cov-report html \
+		--cov-report xml \
+		--junitxml=./test-reports/junit.xml
+
+full-test:
+	pytest tests/ --cov src/ \
+		--cov-report term-missing \
+		--cov-report html \
+		--cov-report xml \
+		--junitxml=./test-reports/junit.xml
+
+serve-coverage-report:
+	@echo "serving test coverage site at http://localhost:3333"
+	python -m http.server 3333 --directory test-reports/htmlcov
+
+tag-with-latest-version:
+	git tag $$(cat VERSION.txt) || echo "repository already tagged"
+
+push-tags-to-remote:
+	git push origin --tags
+
+clean:
+	find . \
+		-name "node_modules" -prune -false \
+		-o -name "*venv" -prune -false \
+		-o -name ".git" -prune -false \
+		-o -type d -name "*.egg-info" \
+		-o -type d -name "dist" \
+		-o -type d -name ".projen" \
+		-o -type d -name "build_" \
+		-o -type d -name "build" \
+		-o -type d -name "cdk.out" \
+		-o -type d -name ".mypy_cache" \
+		-o -type d -name ".pytest_cache" \
+		-o -type d -name "test-reports" \
+		-o -type d -name "htmlcov" \
+		-o -type d -name ".coverage" \
+		-o -type d -name ".ipynb_checkpoints" \
+		-o -type d -name "__pycache__" \
+		-o -type f -name "coverage.xml" \
+		-o -type f -name ".DS_Store" \
+		-o -type f -name "*.pyc" \
+		-o -type f -name ".coverage" \
+		-o -type f -name "*cdk.context.json" | xargs rm -rf {}

@@ -1,0 +1,172 @@
+name: Build, Test, and Publish
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  check-version-txt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Tag with the release version
+        run: |
+          git tag $(cat VERSION.txt)
+
+  lint-format-and-static-code-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Setup Just CLI
+        uses: extractions/setup-just@v1
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+      - name: Lint, Format, and other static code quality checks
+        run: |
+          just lint-ci
+
+  build-wheel--infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Install build CLI
+        run: |
+          pip install build
+      - name: Build python package
+        run: |
+          python -m build --wheel --sdist ./
+      - name: Upload wheel and sdist
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheel-and-sdist--infrastructure
+          path: ./dist/*
+
+  build-wheel--cousin-minecraft-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Install build CLI
+        run: |
+          pip install build
+      - name: Build python package
+        run: |
+          python -m build --wheel --sdist ./
+      - name: Upload wheel and sdist
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheel-and-sdist--cousin-minecraft-server
+          path: ./dist/*
+
+  test--infrastructure:
+    needs:
+      - build-wheel--infrastructure
+      - lint-format-and-static-code-checks
+      - check-version-txt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Setup Just CLI
+        uses: extractions/setup-just@v1
+      - name: Download wheel and sdist
+        uses: actions/download-artifact@v3
+        with:
+          name: wheel-and-sdist--infrastructure
+          path: ./dist/
+      - name: Install wheel and sdist
+        run: |
+          pip install ./dist/*.whl
+      - name: Install test CLI
+        run: |
+          pip install pytest
+      - name: Run tests
+        run: |
+          just full-test
+
+  test--cousin-minecraft-server:
+    needs:
+      - test--infrastructure
+      - build-wheel--cousin-minecraft-server
+      - lint-format-and-static-code-checks
+      - check-version-txt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+      - name: Setup Just CLI
+        uses: extractions/setup-just@v1
+      - name: Download wheel and sdist
+        uses: actions/download-artifact@v3
+        with:
+          name: wheel-and-sdist--cousin-minecraft-server
+          path: ./dist/
+      - name: Install wheel and sdist
+        run: |
+          pip install ./dist/*.whl
+      - name: Install test CLI
+        run: |
+          pip install pytest
+      - name: Run tests
+        run: |
+          just full-test
+
+  publish-tags:
+    needs:
+      - test--cousin-minecraft-server
+      - lint-format-and-static-code-checks
+      - check-version-txt
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Push tags
+        run: |
+          git push origin --tags
+
+
+#   # https://docs.github.com/en/actions/learn-github-actions/contexts#example-printing-context-information-to-the-log
+#   dump-contexts-to-log:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Dump GitHub context
+#         id: github_context_step
+#         run: echo '${{toJSON(github)}}'
+#       - name: Dump job context
+#         run: echo '${{toJSON(job)}}'
+#       - name: Dump steps context
+#         run: echo '${{toJSON(steps)}}'
+#       - name: Dump runner context
+#         run: echo '${{toJSON(runner)}}'
+#       - name: Dump strategy context
+#         run: echo '${{toJSON(strategy)}}'
+#       - name: Dump matrix context
+#         run: echo '${{toJSON(matrix)}}'
+#       - name: Dump secrets
+#         run: echo '${{toJSON(secrets)}}'
+#       - name: Dump vars
+#         run: echo '${{toJSON(vars)}}'

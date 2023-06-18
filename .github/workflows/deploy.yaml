@@ -1,0 +1,58 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    environment: ${{github.event.inputs.environment }}
+    env:
+      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY__IAC }}
+      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID__IAC }}
+      AWS_REGION: ${{vars.AWS_REGION }}
+    steps:
+      - name: Check out ${{github.ref }}
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: Set up npm 18
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+
+      # make docker available with buildkit
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Restore pip cache at ${{env.pythonLocation }}
+        uses: actions/cache@v3
+        with:
+          # path: ${{env.pythonLocation }}  # was giving: /opt/hostedtoolcache/Python/3.8.16/x64
+          path: ~/.cache/pip
+          key: ${{env.pythonLocation }}-${{hashFiles('**pyproject.toml') }}
+
+      - name: Restore apt-get cache
+        uses: actions/cache@v2
+        with:
+          path: /var/cache/apt/archives
+          key: ${{runner.os }}-apt-get
+
+      - name: Setup Just CLI
+        uses: extractions/setup-just@v1
+
+      - name: Install dependencies
+        run: |
+          just install-cdk
+          echo "CDK CLI version: $(cdk --version)"
+
+      - name: Build Bento service (not in docker)
+        if: github.event.inputs.skip-build-and-deploy-latest != 'true'
+        run: |
+          cd ./infrastructure/
+          just cdk deploy

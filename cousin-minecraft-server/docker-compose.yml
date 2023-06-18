@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  cousin-minecraft-server-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+      - ~/.aws:/root/.aws
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      AWS_PROFILE: mlops-club
+      AWS_REGION: us-west-2
