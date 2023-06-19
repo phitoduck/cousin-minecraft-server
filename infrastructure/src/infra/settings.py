@@ -1,6 +1,7 @@
 """Define the settings needed to run `cdk <subcommand> path/to/app.py`."""
 
 from functools import cached_property
+from typing import Optional
 
 import aws_cdk as cdk
 import boto3
@@ -18,7 +19,10 @@ class Settings(BaseSettings):
     """
 
     aws_region: str = Field("us-west-2", description="The AWS region to deploy to.")
-    stack_name = "cousin-minecraft-server"
+    login_domain_prefix: str = "minecraft-user-pool"
+    stack_name = "awscdk-minecraft"
+    # stack_name = "cousin-minecraft-server"
+    backups_bucket_name: Optional[str] = None  # "awscdk-minecraft-minecraftserverbackupsbucketce8b-18lbuip34jg7v"
 
     class Config:
         """

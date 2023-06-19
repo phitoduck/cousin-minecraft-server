@@ -9,12 +9,6 @@ install:
 	pip install --upgrade pip
 	pip install pre-commit flake8 flake8-docstrings Flake8-pyproject radon pylint mypy black isort
 
-lint:
-	pipx run pre-commit run --all-files
-
-lint-ci:
-    SKIP=no-commit-to-branch pipx run pre-commit run --all-files
-
 open-aws:
     #!/bin/bash
     SSO_AWS_START_URL="https://d-926768adcc.awsapps.com/start"
