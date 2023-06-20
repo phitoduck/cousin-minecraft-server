@@ -18,11 +18,13 @@ class Settings(BaseSettings):
     See the docs here: https://docs.pydantic.dev/usage/validators/
     """
 
-    aws_region: str = Field("us-west-2", description="The AWS region to deploy to.")
+    aws_region: str = Field("us-east-1", description="The AWS region to deploy to.")
     login_domain_prefix: str = "minecraft-user-pool"
-    stack_name = "awscdk-minecraft"
+    stack_name = "awscdk-minecraft-cousins"
     # stack_name = "cousin-minecraft-server"
     backups_bucket_name: Optional[str] = None  # "awscdk-minecraft-minecraftserverbackupsbucketce8b-18lbuip34jg7v"
+    ssh_key_pair_name: Optional[str] = "ericriddoch"
+    custom_domain_name: Optional[str] = "mlops-club.org"
 
     class Config:
         """

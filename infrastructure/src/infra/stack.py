@@ -1,8 +1,8 @@
 """Singular CloudFormation stack for this project."""
 
 import aws_cdk as cdk
+from aws_cdk import aws_s3 as s3
 from constructs import Construct
-from infra.settings import Settings
 
 
 class Stack(cdk.Stack):
@@ -12,8 +12,6 @@ class Stack(cdk.Stack):
         self,
         scope: Construct,
         stack_id: str,
-        # pylint: disable=unused-argument
-        settings: Settings,
         **kwargs,
     ) -> None:
         """
@@ -23,3 +21,11 @@ class Stack(cdk.Stack):
         :param construct_id: The stack name.
         """
         super().__init__(scope=scope, id=stack_id, **kwargs)
+
+        game_data_bucket = s3.Bucket(
+            self,
+            "GameDataBucket",
+            removal_policy=cdk.RemovalPolicy.RETAIN,
+        )
+
+        self.game_data_bucket_name = game_data_bucket.bucket_name

@@ -25,23 +25,24 @@ print(APP_SETTINGS.dict())
 
 APP = cdk.App()
 
-MinecraftPaasStack(
-   APP,
-   APP_SETTINGS.stack_name,
-   # login_page_domain_name_prefix just needs to be unique across all AWS accounts
-   login_page_domain_name_prefix=APP_SETTINGS.login_domain_prefix,
-   env=APP_SETTINGS.cdk_env,
-   minecraft_data_bucket_name=APP_SETTINGS.backups_bucket_name,
-   description="The infrastructure for cousin-minecraft-server.",
+data_stack = Stack(
+    APP,
+    "cousins-server-data",
+    env=APP_SETTINGS.cdk_env,
+    description=f"Data for {APP_SETTINGS.stack_name}",
 )
 
-# Stack(
-#     APP,
-#     APP_SETTINGS.stack_name,
-#     settings=APP_SETTINGS,
-#     description="The infrastructure for cousin-minecraft-server.",
-#     env=APP_SETTINGS.cdk_env,
-# )
+MinecraftPaasStack(
+    APP,
+    APP_SETTINGS.stack_name,
+    login_page_domain_name_prefix=APP_SETTINGS.login_domain_prefix,
+    env=APP_SETTINGS.cdk_env,
+    minecraft_data_bucket_name=data_stack.game_data_bucket_name,
+    ssh_key_pair_name=APP_SETTINGS.ssh_key_pair_name,
+    top_level_custom_domain_name=APP_SETTINGS.custom_domain_name,
+    minecraft_server_version="1.20.1",
+    description="The infrastructure for cousin-minecraft-server.",
+)
 
 # Generates the CloudFormation JSON files in the cdk.out/ folder
 APP.synth()
