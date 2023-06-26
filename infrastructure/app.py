@@ -41,6 +41,7 @@ MinecraftPaasStack(
     ssh_key_pair_name=APP_SETTINGS.ssh_key_pair_name,
     top_level_custom_domain_name=APP_SETTINGS.custom_domain_name,
     minecraft_server_version="1.20.1",
+    ec2_instance_type="t3.xlarge",
     description="The infrastructure for cousin-minecraft-server.",
 )
 

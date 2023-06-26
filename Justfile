@@ -1,9 +1,12 @@
 AWS_REGION := "us-west-2"
 AWS_PROFILE := "mlops-club"
 
-cdk COMMAND: require-aws-login
+cdk COMMAND: require-aws-login login-to-public-ecr
 	AWS_PROFILE="{{AWS_PROFILE}}" \
-		cdk "{{COMMAND}}" --all --app "python infrastructure/app.py"
+		cdk "{{COMMAND}}" --all --app "python ./infrastructure/app.py"
+
+login-to-public-ecr:
+    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws | cat
 
 install:
 	pip install --upgrade pip

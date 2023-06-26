@@ -1,8 +1,10 @@
 AWS_PROFILE := "mlops-club"
 
 cdk COMMAND:
-	AWS_PROFILE="{{AWS_PROFILE}}" \
-		cdk "{{COMMAND}}" --all --app "python app.py"
+	just --justfile ../Justfile -- cdk {{COMMAND}}
+
+login-to-public-ecr:
+    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
 cdk-deploy-ci:
 	AWS_ACCESS_KEY_ID=$${AWS_ACCESS_KEY_ID__IAC} \
